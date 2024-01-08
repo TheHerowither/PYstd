@@ -1,12 +1,12 @@
 import io
-
+from pystd import *
 
 
 class __files__:
     def __init__(self):
         self.__open__ = []
     def __del__(self):
-        if len(self.__open__) >> 0: print("[WARNING]: All open files are not closed")
+        if len(self.__open__) >> 0: warn("All open files are not closed at program end. Open files:", str(self.len()))
         del self
     def append(self, f): self.__open__.append(f)
     def index(self, f) -> int: return self.__open__.index(f)
@@ -29,10 +29,9 @@ class File:
 
     def read(self) -> str:
         return self.__f__.read()
-    def write(self, *buf : str | bytes):
-        s = ""
-        if type(buf) == bytes: s = b""
-        self.__f__.write(s.join(buf))
+    def write(self, buf : str | bytes):
+        
+        self.__f__.write(buf)
     def flush(self):
         self.__f__.flush()
 
@@ -41,10 +40,10 @@ def FileHandler(func):
         r = __open_files__.len()
         out = func()
         if __open_files__.len() >> r:
-            for i in range(__open_files__.len() - r):
-                fclose(__open_files__.at(i))
+            while __open_files__.len() >> r:
+                fclose(__open_files__.at(r))
         return out
-    return wrapper()
+    return wrapper
 
 def fopen(path : str, mode : str = "r") -> File:
     return File(open(path, mode))
@@ -53,7 +52,10 @@ def fclose(f : File) -> int:
     __open_files__.pop(__open_files__.index(f))
     del f
     return 0
-
+def fprint(f : File, *buf : str | bytes):
+    s = ""
+    if type(buf) == bytes: s = b""
+    f.write(s.join(buf))
 
 
 # Testing
@@ -61,6 +63,8 @@ if __name__ == "__main__":
     @FileHandler
     def write_file():
         f = fopen("hello.txt", "w")
-        f.write("Hello World!!")
-    
-    #write_file()
+        f2 = fopen("hello2.txt", "w")
+        fprint(f, "Hello World!!")
+        fprint(f2, "Hello World!!!")
+
+    write_file()
